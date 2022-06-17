@@ -1,0 +1,103 @@
+type Query {
+  parking(filter: ParkingFilterInput): [Parking] @function(name: "listParking-${env}")
+  me: User @function(name: "getCurrentUser-${env}")
+}
+
+type Mutation {
+  updateSlot(input: UpdateSlotStatusInput!): Slot @function(name: "updateSlot-${env}") @aws_cognito_user_pools @aws_api_key
+  createInvoice(input: CreateInvoiceInput!): Invoice @function(name: "createInvoice-${env}")
+  closeInvoice(input: CloseInvoiceInput!): Invoice @function(name: "closeInvoice-${env}")
+}
+
+type Subscription {
+	onUpdateSlot: Slot @aws_subscribe(mutations: ["updateSlot"])
+}
+
+input UpdateSlotStatusInput {
+  parkingID: String!
+  device: Int!
+  slotStatus: Int!
+}
+
+input ParkingFilterInput {
+  parkingID: String
+}
+
+input CreateInvoiceInput {
+  parkingID: String
+  slotNumber: String
+  plateNumber: String
+}
+
+input CloseInvoiceInput {
+  parkingID: String
+  invoiceID: String
+}
+
+type Parking {
+  parkingID: ID!
+  address: Address
+  features: [String]
+  location: Location!
+  openingHours: [WorkDay]
+  rate: Float
+  title: String!
+  freeSlots: Int!
+  slots: [Slot]
+}
+
+type WorkDay {
+  open: DayAndTime
+  close: DayAndTime
+}
+
+type DayAndTime {
+  day: Int!
+  time: String
+}
+
+type Slot @aws_cognito_user_pools @aws_api_key {
+  parkingID: String
+  slotNumber: String
+  slotStatus: Int
+  device: Int
+}
+
+type Address {
+  city: String
+  countryCode: String
+  line1: String
+  postalCode: String
+  state: String
+}
+
+type Location {
+  latitude: Float
+  longitude: Float
+}
+
+type User {
+  userID: String
+  fullName: String
+  email: String
+  phone: String
+  vehicles: [Vehicle]
+  invoices: [Invoice]
+}
+
+type Vehicle {
+  make: String
+  model: String
+  plateNumber: String
+}
+
+type Invoice {
+  parkingID: String
+  invoiceID: String
+  slotNumber: String
+  dateFrom: String
+  dateTo: String
+  plateNumber: String
+  price: Float
+  parking: Parking
+}
